@@ -14,51 +14,7 @@ SYSTEM_PROMPT = (
     "Output: Provide these outputs in a user-friendly format, depending on the image type."
 )
 
-# Updated PHASES to handle conditions and dynamic prompts
-PHASES = {
-    "phase1": {
-        "name": "Image Input and Output Generation",
-        "fields": {
-            "http_img_urls": {
-                "type": "text_area",
-                "label": "Enter image URLs"
-            },
-            "uploaded_files": {
-                "type": "file_uploader",
-                "label": "Choose files",
-                "allowed_files": ['png', 'jpeg', 'gif', 'webp'],
-                "multiple_files": True,
-            },
-        },
-        "phase_instructions": (
-            "Provide the necessary outputs for each image. "
-            "- For simple images, generate LaTeX code and alt text. "
-            "- For complex images, generate LaTeX code and an accessible visual transcript."
-        ),
-        "user_prompts": [
-            {
-                "condition": {"is_complex": False},
-                "prompt": (
-                    "I am sending you one or more images. Please provide both: "
-                    "- Properly formatted LaTeX code for mathematical elements. "
-                    "- Alt text describing the image content."
-                )
-            },
-            {
-                "condition": {"is_complex": True},
-                "prompt": (
-                    "I am sending you one or more complex images. Please provide: "
-                    "- Properly formatted LaTeX code for the image content. "
-                    "- An accessible visual transcript describing the image in detail."
-                )
-            }
-        ],
-        "show_prompt": True,
-        "allow_skip": False,
-    }
-}
-
-# Adding temperature hyperparameter and other LLM overrides
+# LLM configuration overrides
 LLM_CONFIG_OVERRIDE = {
     "temperature": 0.2,  # Ensures deterministic output for accurate results
     "top_p": 0.9        # Balances diversity and relevance
@@ -79,22 +35,34 @@ def main():
     st.header("System Prompt")
     st.text_area("View/Edit System Prompt:", value=SYSTEM_PROMPT, height=200)
 
-    # Image Input and Complexity Check
-    st.header("Image Input and Output Generation")
+    # Section for URL Input
+    st.header("Image Input via URLs")
+    http_img_urls = st.text_area("Enter image URLs (one per line):", height=150)
+
+    if http_img_urls:
+        url_list = http_img_urls.strip().split("\n")
+        for idx, url in enumerate(url_list):
+            st.image(url, caption=f"Preview of URL Image {idx + 1}")
+            is_complex_url = st.checkbox(f"Is URL Image {idx + 1} complex?", key=f"url_{idx}")
+
+            if is_complex_url:
+                st.text_area(f"Accessible Transcript for URL Image {idx + 1}:", value="Generating detailed transcript...")
+            else:
+                st.text_area(f"LaTeX and Alt Text for URL Image {idx + 1}:", value="Generating concise outputs...")
+
+    # Section for File Upload
+    st.header("Image Input via File Upload")
     uploaded_files = st.file_uploader("Upload images", type=["png", "jpeg", "gif", "webp"], accept_multiple_files=True)
 
-    # Checkbox for Complex Image
-    is_complex = st.checkbox("Check if these images are complex")
-
     if uploaded_files:
-        for file in uploaded_files:
-            st.image(file, caption=f"Preview of {file.name}")
-            if is_complex:
-                st.info(f"Processing {file.name} as a complex image...")
-                st.text_area(f"Accessible Transcript for {file.name}:", value="Generating detailed transcript...")
+        for idx, file in enumerate(uploaded_files):
+            st.image(file, caption=f"Preview of Uploaded Image {idx + 1}")
+            is_complex_file = st.checkbox(f"Is Uploaded Image {idx + 1} complex?", key=f"file_{idx}")
+
+            if is_complex_file:
+                st.text_area(f"Accessible Transcript for Uploaded Image {idx + 1}:", value="Generating detailed transcript...")
             else:
-                st.info(f"Processing {file.name} as a simple image...")
-                st.text_area(f"LaTeX and Alt Text for {file.name}:", value="Generating concise outputs...")
+                st.text_area(f"LaTeX and Alt Text for Uploaded Image {idx + 1}:", value="Generating concise outputs...")
 
     # Restart Button
     if st.button("Restart"):
