@@ -40,30 +40,36 @@ def main():
     st.header("Image Input via URLs")
     http_img_urls = st.text_area("Enter image URLs (one per line):", height=150)
 
-    if http_img_urls:
-        url_list = http_img_urls.strip().split("\n")
-        for idx, url in enumerate(url_list):
-            st.image(url, caption=f"Preview of URL Image {idx + 1}")
-            is_complex_url = st.checkbox(f"Is URL Image {idx + 1} complex?", key=f"url_{idx}")
-
-            if is_complex_url:
-                st.text_area(f"Accessible Transcript for URL Image {idx + 1}:", value="Generating detailed transcript...")
-            else:
-                st.text_area(f"LaTeX and Alt Text for URL Image {idx + 1}:", value="Generating concise outputs...")
-
     # Section for File Upload
     st.header("Image Input via File Upload")
     uploaded_files = st.file_uploader("Upload images", type=["png", "jpeg", "gif", "webp"], accept_multiple_files=True)
 
-    if uploaded_files:
-        for idx, file in enumerate(uploaded_files):
-            st.image(file, caption=f"Preview of Uploaded Image {idx + 1}")
-            is_complex_file = st.checkbox(f"Is Uploaded Image {idx + 1} complex?", key=f"file_{idx}")
+    # Submit Button to Process Inputs
+    if st.button("Submit"):
+        # Process URLs
+        if http_img_urls:
+            url_list = http_img_urls.strip().split("\n")
+            st.subheader("Processing Images from URLs")
+            for idx, url in enumerate(url_list):
+                st.image(url, caption=f"Preview of URL Image {idx + 1}")
+                is_complex_url = st.checkbox(f"Is URL Image {idx + 1} complex?", key=f"url_{idx}")
 
-            if is_complex_file:
-                st.text_area(f"Accessible Transcript for Uploaded Image {idx + 1}:", value="Generating detailed transcript...")
-            else:
-                st.text_area(f"LaTeX and Alt Text for Uploaded Image {idx + 1}:", value="Generating concise outputs...")
+                if is_complex_url:
+                    st.text_area(f"Accessible Transcript for URL Image {idx + 1}:", value="Generating detailed transcript...")
+                else:
+                    st.text_area(f"LaTeX and Alt Text for URL Image {idx + 1}:", value="Generating concise outputs...")
+
+        # Process Uploaded Files
+        if uploaded_files:
+            st.subheader("Processing Uploaded Images")
+            for idx, file in enumerate(uploaded_files):
+                st.image(file, caption=f"Preview of Uploaded Image {idx + 1}")
+                is_complex_file = st.checkbox(f"Is Uploaded Image {idx + 1} complex?", key=f"file_{idx}")
+
+                if is_complex_file:
+                    st.text_area(f"Accessible Transcript for Uploaded Image {idx + 1}:", value="Generating detailed transcript...")
+                else:
+                    st.text_area(f"LaTeX and Alt Text for Uploaded Image {idx + 1}:", value="Generating concise outputs...")
 
     # Restart Button
     if st.button("Restart"):
