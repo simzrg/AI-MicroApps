@@ -1,10 +1,11 @@
 import streamlit as st
 
+# App Constants
 APP_URL = "https://example.com/app"  # Example URL
 APP_IMAGE = "https://example.com/default_image.png"  # Example default image
 PREFERRED_LLM = "gpt-4o"  # Matching preferred LLM
 
-# Updated System Prompt to include both LaTeX and alt text generation
+# Updated System Prompt
 SYSTEM_PROMPT = (
     "You accept images in URL and file formats containing mathematical equations, symbols, "
     "and text. You can generate three outputs for each image: "
@@ -16,7 +17,7 @@ SYSTEM_PROMPT = (
 
 # LLM configuration overrides
 LLM_CONFIG_OVERRIDE = {
-    "temperature": 0.2,  # Ensures deterministic output for accurate results
+    "temperature": 0.2,  # Ensures deterministic output for accuracy
     "top_p": 0.9        # Balances diversity and relevance
 }
 
