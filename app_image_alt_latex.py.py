@@ -1,80 +1,69 @@
-import streamlit as st
+APP_URL = "" # TODO: Add URL for the app
+APP_IMAGE = "" # TODO: Add default image for the app
+PUBLISHED = False # Status of the app
 
-# App Constants
-APP_URL = "https://example.com/app"  # Example URL
-APP_IMAGE = "https://example.com/default_image.png"  # Example default image
-PREFERRED_LLM = "gpt-4o"  # Matching preferred LLM
+APP_TITLE = "LaTex Generator"
+APP_INTRO = "This app accepts images via upload or URL and returns LaTeX code."
 
-# Updated System Prompt
-SYSTEM_PROMPT = (
-    "You accept images in URL and file formats containing mathematical equations, symbols, "
-    "and text. You can generate three outputs for each image: "
-    "- (1) Accurate and properly formatted LaTeX code. "
-    "- (2) Alt text describing the image content (for simple images). "
-    "- (3) An accessible visual transcript for complex images. "
-    "Output: Provide these outputs in a user-friendly format, depending on the image type."
-)
+APP_HOW_IT_WORKS = """
+This app creates LaTeX code from images. 
+                For most images, it provides properly formated LaTeX code.
+ """
 
-# LLM configuration overrides
-LLM_CONFIG_OVERRIDE = {
-    "temperature": 0.2,  # Ensures deterministic output for accuracy
-    "top_p": 0.9        # Balances diversity and relevance
+SHARED_ASSET = {
 }
 
+HTML_BUTTON = {
+
+}
+
+SYSTEM_PROMPT = "You accept images in url and file format containing mathematical equations, symbols, and text into accurate and you convert the images into properly formatted LaTeX code. Output: Provide the final LaTeX code in a format that can be easily copied or exported."
+
+PHASES = {
+    "phase1": {
+        "name": "Image Input and LaTeX Generation",
+        "fields": {
+            "http_img_urls": {
+                "type": "text_area",
+                "label": "Enter image urls"
+            },
+            "uploaded_files": {
+                "type": "file_uploader",
+                "label": "Choose files",
+                "allowed_files": ['png', 'jpeg', 'gif', 'webp'],
+                "multiple_files": True,
+            },
+        },
+       "phase_instructions": "Generate LaTeX for the image urls and uploads",
+
+        "user_prompt": [
+            {
+                "prompt": """I am sending you one or more app_images. Please provide separate LaTeX code for each image I send. The LaTeX code should:
+                - convert the images into properly formatted LaTeX code"""
+            }
+        ],
+        "show_prompt": True,
+        "allow_skip": False,
+    }
+}
+PREFERRED_LLM = "gpt-4o"
+LLM_CONFIG_OVERRIDE = {}
+
+SCORING_DEBUG_MODE = True
+DISPLAY_COST = True
+
+COMPLETION_MESSAGE = "Thanks for using the LaTeX Generator service"
+COMPLETION_CELEBRATION = False
+
 PAGE_CONFIG = {
-    "page_title": "LaTeX and Accessible Transcript Generator",
+    "page_title": "LaTeX Generator",
     "page_icon": "🖼️",
     "layout": "centered",
     "initial_sidebar_state": "expanded"
 }
 
-# Main App Logic
-def main():
-    st.set_page_config(**PAGE_CONFIG)
+SIDEBAR_HIDDEN = True
 
-    # Display System Prompt Section
-    st.header("System Prompt")
-    st.text_area("View/Edit System Prompt:", value=SYSTEM_PROMPT, height=200)
-
-    # Section for URL Input
-    st.header("Image Input via URLs")
-    http_img_urls = st.text_area("Enter image URLs (one per line):", height=150)
-
-    # Section for File Upload
-    st.header("Image Input via File Upload")
-    uploaded_files = st.file_uploader("Upload images", type=["png", "jpeg", "gif", "webp"], accept_multiple_files=True)
-
-    # Submit Button to Process Inputs
-    if st.button("Submit"):
-        # Process URLs
-        if http_img_urls:
-            url_list = http_img_urls.strip().split("\n")
-            st.subheader("Processing Images from URLs")
-            for idx, url in enumerate(url_list):
-                st.image(url, caption=f"Preview of URL Image {idx + 1}")
-                is_complex_url = st.checkbox(f"Is URL Image {idx + 1} complex?", key=f"url_{idx}")
-
-                if is_complex_url:
-                    st.text_area(f"Accessible Transcript for URL Image {idx + 1}:", value="Generating detailed transcript...")
-                else:
-                    st.text_area(f"LaTeX and Alt Text for URL Image {idx + 1}:", value="Generating concise outputs...")
-
-        # Process Uploaded Files
-        if uploaded_files:
-            st.subheader("Processing Uploaded Images")
-            for idx, file in enumerate(uploaded_files):
-                st.image(file, caption=f"Preview of Uploaded Image {idx + 1}")
-                is_complex_file = st.checkbox(f"Is Uploaded Image {idx + 1} complex?", key=f"file_{idx}")
-
-                if is_complex_file:
-                    st.text_area(f"Accessible Transcript for Uploaded Image {idx + 1}:", value="Generating detailed transcript...")
-                else:
-                    st.text_area(f"LaTeX and Alt Text for Uploaded Image {idx + 1}:", value="Generating concise outputs...")
-
-    # Restart Button
-    if st.button("Restart"):
-        st.experimental_rerun()
-
-# Run the app
+from core_logic.main import main
 if __name__ == "__main__":
-    main()
+    main(config=globals())
