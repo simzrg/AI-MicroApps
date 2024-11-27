@@ -1,17 +1,20 @@
+import streamlit as st
+
 APP_URL = "https://example.com/app"  # Example URL
 APP_IMAGE = "https://example.com/default_image.png"  # Example default image
 PREFERRED_LLM = "gpt-4o"  # Matching preferred LLM
 
-# Updated System Prompt to include both LaTeX and alt text generation
+# Updated System Prompt
 SYSTEM_PROMPT = (
     "You accept images in URL and file formats containing mathematical equations, symbols, "
-    "and text. You can generate two outputs for each image: "
+    "and text. You can generate three outputs for each image: "
     "- (1) Accurate and properly formatted LaTeX code. "
-    "- (2) Alt text describing the image content. "
-    "Output: Provide both outputs for each image in a user-friendly format."
+    "- (2) Alt text describing the image content (for simple images). "
+    "- (3) An accessible visual transcript for complex images. "
+    "Output: Provide these outputs in a user-friendly format, depending on the image type."
 )
 
-# Updated PHASES to handle conditions and dynamic prompts
+# PHASES for configuration
 PHASES = {
     "phase1": {
         "name": "Image Input and Output Generation",
@@ -26,66 +29,64 @@ PHASES = {
                 "allowed_files": ['png', 'jpeg', 'gif', 'webp'],
                 "multiple_files": True,
             },
-        },
-        "phase_instructions": "Generate LaTeX code and/or alt text for the image URLs and uploads.",
-        "user_prompts": [
-            {
-                "condition": {"important_text": False, "complex_image": False},
-                "prompt": (
-                    "I am sending you one or more images. Please provide both: "
-                    "- Properly formatted LaTeX code for mathematical elements."
-                    "- Alt text describing the image."
-                )
-            },
-            {
-                "condition": {"complex_image": True},
-                "prompt": (
-                    "I am sending you one or more complex images. Please provide: "
-                    "- Properly formatted LaTeX code for the image content."
-                    "- A detailed alt text description of the image."
-                )
-            },
-            {
-                "condition": {"important_text": True, "complex_image": True},
-                "prompt": (
-                    "I am sending you one or more important and complex images. Please provide: "
-                    "- Detailed LaTeX code for mathematical elements. "
-                    "- A detailed alt text description, focusing on important textual information."
-                )
+            "is_complex": {
+                "type": "checkbox",
+                "label": "Is this a complex image?",
+                "default": False
             }
-        ],
-        "show_prompt": True,
-        "allow_skip": False,
+        },
+        "phase_instructions": (
+            "Provide the necessary outputs for each image. "
+            "- For simple images, generate LaTeX code and alt text. "
+            "- For complex images, generate LaTeX code and an accessible visual transcript."
+        ),
     }
 }
 
-# Adding temperature hyperparameter and other LLM overrides
+# LLM configuration overrides
 LLM_CONFIG_OVERRIDE = {
-    "temperature": 0.2,
-    "top_p": 0.9
+    "temperature": 0.2,  # Ensures deterministic output for accuracy
+    "top_p": 0.9        # Balances diversity and relevance
 }
 
+# Page configuration
 PAGE_CONFIG = {
-    "page_title": "LaTeX and Alt Text Generator",
+    "page_title": "LaTeX and Accessible Transcript Generator",
     "page_icon": "🖼️",
     "layout": "centered",
     "initial_sidebar_state": "expanded"
 }
 
-# Verify module import
-try:
-    from core_logic.main import main
-except ImportError as e:
-    raise ImportError("Ensure 'core_logic.main' is available.") from e
+# Initialize Streamlit Page Config
+st.set_page_config(**PAGE_CONFIG)
 
+# Main App Logic
+def main():
+    # Display System Prompt Section
+    st.header("System Prompt")
+    st.text_area("View/Edit System Prompt:", value=SYSTEM_PROMPT, height=200)
+
+    # Image Upload and Complexity Check
+    st.header("Image Input and Output Generation")
+    uploaded_files = st.file_uploader("Upload images", type=["png", "jpeg", "gif", "webp"], accept_multiple_files=True)
+    is_complex = st.checkbox("Is this a complex image?", value=False)
+
+    if uploaded_files:
+        for file in uploaded_files:
+            st.image(file, caption=f"Preview of {file.name}")
+            if is_complex:
+                st.info(f"Processing {file.name} as a complex image...")
+                # Example prompt for a complex image
+                st.text_area(f"Accessible Transcript for {file.name}:", value="Generating detailed transcript...")
+            else:
+                st.info(f"Processing {file.name} as a simple image...")
+                # Example prompt for a simple image
+                st.text_area(f"LaTeX and Alt Text for {file.name}:", value="Generating concise outputs...")
+
+    # Restart Button
+    if st.button("Restart"):
+        st.experimental_rerun()
+
+# Run the app
 if __name__ == "__main__":
-    config = {
-        "APP_URL": APP_URL,
-        "APP_IMAGE": APP_IMAGE,
-        "PREFERRED_LLM": PREFERRED_LLM,
-        "PHASES": PHASES,
-        "SYSTEM_PROMPT": SYSTEM_PROMPT,
-        "LLM_CONFIG_OVERRIDE": LLM_CONFIG_OVERRIDE,
-        "PAGE_CONFIG": PAGE_CONFIG,
-    }
-    main(config=config)
+    main()
