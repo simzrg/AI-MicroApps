@@ -1,3 +1,5 @@
+import streamlit as st
+
 APP_URL = ""  # TODO: Add URL for the app
 APP_IMAGE = ""  # TODO: Add default image for the app
 PUBLISHED = False  # Status of the app
@@ -55,6 +57,7 @@ PHASES = {
         "phase_instructions": "Provide the images through URL or upload and configure your options below.",
         "user_prompt": [
             {
+                "condition": True,  # Default condition
                 "prompt": """I am sending you one or more app_images. Please provide separate LaTeX code, alt text, and/or visual transcript for each image I send based on the selected options. The LaTeX code should:
                 - Convert the images into properly formatted LaTeX code."""
             }
@@ -82,6 +85,70 @@ PAGE_CONFIG = {
 
 SIDEBAR_HIDDEN = True
 
+# Render Functions
+def render_text_area(config):
+    """Renders a text area in Streamlit."""
+    return st.text_area(
+        label=config.get("label", "Enter text"),
+        value=config.get("default", ""),
+        height=config.get("height", 150),
+    )
+
+def render_file_uploader(config):
+    """Renders a file uploader in Streamlit."""
+    return st.file_uploader(
+        label=config.get("label", "Upload file(s)"),
+        type=config.get("allowed_files", None),
+        accept_multiple_files=config.get("multiple_files", False),
+    )
+
+def render_button(config):
+    """Renders a button in Streamlit."""
+    return st.button(
+        label=config.get("label", "Submit"),
+    )
+
+def render_select(config):
+    """Renders a dropdown menu in Streamlit."""
+    return st.selectbox(
+        label=config.get("label", "Select an option"),
+        options=config.get("options", []),
+        index=config.get("default_index", 0),
+    )
+
+# Mapping for field types to rendering functions
+function_map = {
+    "text_area": render_text_area,
+    "file_uploader": render_file_uploader,
+    "button": render_button,
+    "select": render_select,
+}
+
+def prompt_conditionals(user_input, phase_name, phases):
+    phase = phases.get(phase_name, {})
+    additional_prompts = []
+    for item in phase.get("user_prompt", []):
+        condition_clause = item.get("condition", True)  # Default to True if condition is missing
+        if condition_clause:  # Evaluate or use default True
+            additional_prompts.append(item["prompt"])
+    return "\n".join(additional_prompts)
+
+def format_user_prompt(prompt, user_input):
+    try:
+        if isinstance(prompt, list):
+            prompt = "\n".join(prompt)  # Convert list to string
+        formatted_user_prompt = prompt.format(**user_input)
+        return formatted_user_prompt
+    except Exception as e:
+        print(f"Error occurred in format_user_prompt: {e}")
+        return prompt  # Fallback to raw prompt
+
 from core_logic.main import main
 if __name__ == "__main__":
+    st.set_page_config(
+        page_title=PAGE_CONFIG["page_title"],
+        page_icon=PAGE_CONFIG["page_icon"],
+        layout=PAGE_CONFIG["layout"],
+        initial_sidebar_state=PAGE_CONFIG["initial_sidebar_state"],
+    )
     main(config=globals())
