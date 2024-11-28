@@ -2,12 +2,12 @@ APP_URL = ""  # TODO: Add URL for the app
 APP_IMAGE = ""  # TODO: Add default image for the app
 PUBLISHED = False  # Status of the app
 
-APP_TITLE = "LaTeX Generator"
-APP_INTRO = "This app accepts images via upload or URL and returns LaTeX code."
+APP_TITLE = "Image Description Generator"
+APP_INTRO = "This app accepts images via upload or URL and returns appropriate descriptions."
 
 APP_HOW_IT_WORKS = """
-This app creates LaTeX code from images. 
-For most images, it provides properly formatted LaTeX code.
+This app creates descriptions for images. 
+For most images, it provides concise alt text based on the most important concept displayed.
 """
 
 SHARED_ASSET = {}
@@ -15,12 +15,13 @@ SHARED_ASSET = {}
 HTML_BUTTON = {}
 
 SYSTEM_PROMPT = (
-    "You accept app_images in url and file format to generate description or alt text according to WCAG 2.2 AA accessibility standards.  "
+    "You accept images in URL and file format and provide accurate descriptions. "
+    "Output: Provide descriptions that are concise and contextually relevant."
 )
 
 PHASES = {
     "phase1": {
-        "name": "Image Input and LaTeX Generation",
+        "name": "Image Input and Description Generation",
         "fields": {
             "http_img_urls": {
                 "type": "text_area",
@@ -33,11 +34,11 @@ PHASES = {
                 "multiple_files": True,
             },
         },
-        "phase_instructions": "Generate LaTeX for the image URLs and uploads",
+        "phase_instructions": "Generate descriptions for the image URLs and uploads",
         "user_prompt": [
             {
-                "prompt": """I am sending you one or more app_images. Please provide separate LaTeX code for each image I send. The LaTeX code should:
-                - Convert the images into properly formatted LaTeX code."""
+                "prompt": """I am sending you one or more app_images. Please provide appropriate descriptions for each image I send. The descriptions should:
+                - Describe the most important concept displayed in the image in less than 120 characters."""
             }
         ],
         "show_prompt": True,
@@ -51,11 +52,11 @@ LLM_CONFIG_OVERRIDE = {}
 SCORING_DEBUG_MODE = True
 DISPLAY_COST = True
 
-COMPLETION_MESSAGE = "Thanks for using the LaTeX Generator service"
+COMPLETION_MESSAGE = "Thanks for using the Image Description Generator service"
 COMPLETION_CELEBRATION = False
 
 PAGE_CONFIG = {
-    "page_title": "LaTeX Generator",
+    "page_title": "Image Description Generator",
     "page_icon": "🖼️",
     "layout": "centered",
     "initial_sidebar_state": "expanded"
@@ -73,6 +74,38 @@ def call_llm(prompt, model):
     Replace this with the real API call or backend logic.
     """
     return f"Simulated response for the prompt:\n\n{prompt}"
+
+# Helper Function: Build Prompt Dynamically
+def build_prompt(system_prompt, urls, files, options):
+    """
+    Build the dynamic system prompt based on user inputs and options.
+    """
+    prompt = system_prompt + "\n\n"
+    
+    if urls:
+        prompt += f"I have provided the following image URLs: {', '.join(urls)}.\n"
+    if files:
+        prompt += f"I have uploaded the following image files: {', '.join(files)}.\n"
+
+    # Handle complex image option
+    if options.get("complex_image"):
+        prompt += (
+            "I am sending you one or more complex app_images. "
+            "Please provide a short description of the most important concept depicted in the image; "
+            "and a long description to explain the relationship between components to provide a detailed "
+            "and informative description of the image.\n"
+        )
+    elif options.get("important_text"):
+        # Handle important text option
+        prompt += "Transcribe text verbatim to provide a detailed and informative description of the image.\n"
+    else:
+        # Default prompt if no options are selected
+        prompt += (
+            "I am sending you one or more app_images. Please provide separate appropriate alt text for each image I send. "
+            "The alt text should describe the most important concept displayed in the image in less than 120 characters.\n"
+        )
+    
+    return prompt.strip()
 
 # Main Application Function
 def main(config):
@@ -100,11 +133,10 @@ def main(config):
         accept_multiple_files=config["PHASES"]["phase1"]["fields"]["uploaded_files"]["multiple_files"],
     )
 
-    # Output Options
-    st.subheader("Output Options")
-    generate_latex = st.checkbox("Generate LaTeX Code", value=True)
-    generate_alt_text = st.checkbox("Generate Alt Text", value=False)
-    generate_transcript = st.checkbox("Generate Visual Transcript", value=False)
+    # Options for Image Processing
+    st.subheader("Image Processing Options")
+    complex_image = st.checkbox("Complex Image")
+    important_text = st.checkbox("Important Text")
 
     # Submit Button
     if st.button("Submit"):
@@ -116,17 +148,11 @@ def main(config):
             file_names = [file.name for file in uploaded_files]
 
             # Build dynamic prompt
-            prompt = system_prompt + "\n\n"
-            if urls:
-                prompt += f"Image URLs provided: {', '.join(urls)}\n"
-            if file_names:
-                prompt += f"Uploaded file names: {', '.join(file_names)}\n"
-            if generate_latex:
-                prompt += "- Generate LaTeX code.\n"
-            if generate_alt_text:
-                prompt += "- Create alt text.\n"
-            if generate_transcript:
-                prompt += "- Generate visual transcripts.\n"
+            options = {
+                "complex_image": complex_image,
+                "important_text": important_text,
+            }
+            prompt = build_prompt(system_prompt, urls, file_names, options)
 
             # Display Finalized Prompt
             st.write("### Finalized Prompt")
