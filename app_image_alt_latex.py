@@ -40,25 +40,6 @@ http_img_urls = st.text_area(
 if st.button("Generate LaTeX Code"):
     if not uploaded_files and not http_img_urls.strip():
         st.error("Please upload files or enter image URLs.")
-    else:
-        with st.spinner("Processing..."):
-            # Process uploaded files
-            if uploaded_files:
-                st.subheader("LaTeX Code from Uploaded Files")
-                for file in uploaded_files:
-                    # Streamlit AI interaction for file processing
-                    response = st.experimental_connection("ai").run(file.read())
-                    st.code(response, language="latex")
-
-            # Process URLs
-            if http_img_urls.strip():
-                st.subheader("LaTeX Code from Image URLs")
-                for url in http_img_urls.splitlines():
-                    # Streamlit AI interaction for URL processing
-                    response = st.experimental_connection("ai").run(url)
-                    st.code(response, language="latex")
-
-        st.success("LaTeX code generation completed.")
 
 # Footer
 st.info("Thanks for using the LaTeX Generator service!")
