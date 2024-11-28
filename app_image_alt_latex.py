@@ -2,7 +2,7 @@ import streamlit as st
 import openai
 import requests
 
-# Constants for App Configuration
+# App Constants
 APP_URL = ""  # TODO: Add URL for the app
 APP_IMAGE = ""  # TODO: Add default image for the app
 PUBLISHED = False  # Status of the app
@@ -14,43 +14,16 @@ This app creates LaTeX code from images.
 For most images, it provides properly formatted LaTeX code.
 """
 
-SYSTEM_PROMPT = (
+DEFAULT_PROMPT = (
     "You accept images in URL and file format containing mathematical equations, "
     "symbols, and text. Convert the images into properly formatted LaTeX code. "
     "Output: Provide the final LaTeX code in a format that can be easily copied or exported."
 )
 
-PHASES = {
-    "phase1": {
-        "name": "Image Input and LaTeX Generation",
-        "fields": {
-            "http_img_urls": {
-                "type": "text_area",
-                "label": "Enter image URLs",
-            },
-            "uploaded_files": {
-                "type": "file_uploader",
-                "label": "Choose files",
-                "allowed_files": ['png', 'jpeg', 'gif', 'webp'],
-                "multiple_files": True,
-            },
-        },
-        "phase_instructions": "Generate LaTeX for the image URLs and uploads",
-        "user_prompt": [
-            {
-                "prompt": """I am sending you one or more app_images. Please provide separate LaTeX code for each image I send. The LaTeX code should:
-                - Convert the images into properly formatted LaTeX code."""
-            }
-        ],
-        "show_prompt": True,
-        "allow_skip": False,
-    }
-}
+# OpenAI API Key (replace with your key)
+openai.api_key = "your_openai_api_key_here"
 
-# OpenAI API Key
-openai.api_key = "your_openai_api_key_here"  # Replace with your OpenAI API key
-
-# Helper Function to Validate URLs
+# Helper Function: Validate URLs
 def is_valid_url(url):
     try:
         response = requests.head(url, timeout=5)
@@ -58,24 +31,29 @@ def is_valid_url(url):
     except requests.RequestException:
         return False
 
-# Generate Dynamic Prompt
-def generate_system_prompt(base_prompt, urls, files, generate_latex):
+# Helper Function: Generate Dynamic System Prompt
+def generate_system_prompt(base_prompt, urls, files, latex, alt_text, transcript):
     prompt = base_prompt + "\n\n"
     if urls:
-        prompt += f"I have provided the following image URLs: {urls}\n"
+        prompt += f"I have provided the following image URLs: {', '.join(urls)}.\n"
     if files:
-        prompt += f"I have uploaded the following image files: {', '.join(files)}\n"
-    if generate_latex:
-        prompt += "- Please generate properly formatted LaTeX code for these images.\n"
+        prompt += f"I have uploaded the following image files: {', '.join(files)}.\n"
+    prompt += "Please perform the following actions:\n"
+    if latex:
+        prompt += "- Generate properly formatted LaTeX code from the images.\n"
+    if alt_text:
+        prompt += "- Create descriptive alt text for the images.\n"
+    if transcript:
+        prompt += "- Generate a visual transcript for the images.\n"
     return prompt.strip()
 
-# Function to Call OpenAI API
+# Helper Function: Call OpenAI API
 def call_openai_api(prompt):
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-4",  # Use "gpt-3.5-turbo" if needed
+            model="gpt-4",  # Replace with gpt-3.5-turbo if needed
             messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "system", "content": DEFAULT_PROMPT},
                 {"role": "user", "content": prompt},
             ],
             max_tokens=1000,
@@ -85,7 +63,7 @@ def call_openai_api(prompt):
     except Exception as e:
         return f"Error: {e}"
 
-# App Setup
+# Streamlit Page Configuration
 st.set_page_config(
     page_title="LaTeX Generator",
     page_icon="🖼️",
@@ -93,59 +71,61 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# Sidebar for Advanced Settings
-with st.sidebar:
-    st.title("Advanced Settings")
-    system_prompt = st.text_area(
-        label="Edit System Prompt",
-        value=SYSTEM_PROMPT,
-        height=150,
-    )
-
-# Main Application
+# App Header
 st.title(APP_TITLE)
 st.markdown(APP_INTRO)
 st.markdown(APP_HOW_IT_WORKS)
 
-# Input Phase
+# Sidebar for Advanced Settings
+with st.sidebar:
+    st.title("Advanced Settings")
+    system_prompt = st.text_area("Edit System Prompt", value=DEFAULT_PROMPT, height=150)
+
+# Image Input Section
 st.subheader("Input Images")
-image_url = st.text_area("Enter Image URLs (one per line)")
+image_urls = st.text_area("Enter Image URLs (one per line)")
 uploaded_files = st.file_uploader(
     "Upload Image Files",
     type=["png", "jpeg", "jpg", "gif", "webp"],
     accept_multiple_files=True,
 )
 
-# Options
+# Output Options
+st.subheader("Output Options")
 generate_latex = st.checkbox("Generate LaTeX Code", value=True)
+generate_alt_text = st.checkbox("Generate Alt Text", value=False)
+generate_transcript = st.checkbox("Generate Visual Transcript", value=False)
 
 # Submit Button
 if st.button("Submit"):
-    urls = [url.strip() for url in image_url.split("\n") if url.strip()]
+    # Collect Input Data
+    urls = [url.strip() for url in image_urls.split("\n") if url.strip()]
     file_names = [uploaded_file.name for uploaded_file in uploaded_files]
 
-    # Validate Input
+    # Validate Inputs
     if not urls and not uploaded_files:
         st.error("Please provide at least one image URL or upload an image.")
     else:
-        # Generate Prompt
-        dynamic_prompt = generate_system_prompt(
+        # Generate Dynamic Prompt
+        finalized_prompt = generate_system_prompt(
             system_prompt,
             urls,
             file_names,
             generate_latex,
+            generate_alt_text,
+            generate_transcript,
         )
 
+        # Display Finalized Prompt
         st.write("### Finalized Prompt Sent to OpenAI:")
-        st.code(dynamic_prompt)
+        st.code(finalized_prompt)
 
-        # Process with OpenAI
-        result = call_openai_api(dynamic_prompt)
-
+        # Call OpenAI API
         st.write("### Results:")
+        result = call_openai_api(finalized_prompt)
         st.text(result)
 
-        # Display Uploaded Files (Optional)
+        # Optionally Display Uploaded Files
         if uploaded_files:
             st.write("### Uploaded Images:")
             for uploaded_file in uploaded_files:
