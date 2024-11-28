@@ -15,10 +15,7 @@ SHARED_ASSET = {}
 HTML_BUTTON = {}
 
 SYSTEM_PROMPT = (
-    "You accept images in URL and file format containing mathematical equations, "
-    "symbols, and text into accurate and you convert the images into properly "
-    "formatted LaTeX code. Output: Provide the final LaTeX code in a format that "
-    "can be easily copied or exported."
+    "You accept app_images in url and file format to generate description or alt text according to WCAG 2.2 AA accessibility standards.  "
 )
 
 PHASES = {
