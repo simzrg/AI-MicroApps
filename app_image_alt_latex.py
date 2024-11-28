@@ -1,5 +1,13 @@
 import streamlit as st
 
+# Ensure page configuration is applied once and first
+st.set_page_config(
+    page_title="LaTeX Generator",
+    page_icon="🖼️",
+    layout="centered",
+    initial_sidebar_state="expanded",
+)
+
 APP_URL = ""  # TODO: Add URL for the app
 APP_IMAGE = ""  # TODO: Add default image for the app
 PUBLISHED = False  # Status of the app
@@ -76,18 +84,10 @@ DISPLAY_COST = True
 COMPLETION_MESSAGE = "Thank you for using the LaTeX Generator service!"
 COMPLETION_CELEBRATION = False
 
-PAGE_CONFIG = {
-    "page_title": "LaTeX Generator",
-    "page_icon": "🖼️",
-    "layout": "centered",
-    "initial_sidebar_state": "expanded"
-}
-
 SIDEBAR_HIDDEN = True
 
 # Render Functions
 def render_text_area(config):
-    """Renders a text area in Streamlit."""
     return st.text_area(
         label=config.get("label", "Enter text"),
         value=config.get("default", ""),
@@ -95,7 +95,6 @@ def render_text_area(config):
     )
 
 def render_file_uploader(config):
-    """Renders a file uploader in Streamlit."""
     return st.file_uploader(
         label=config.get("label", "Upload file(s)"),
         type=config.get("allowed_files", None),
@@ -103,20 +102,18 @@ def render_file_uploader(config):
     )
 
 def render_button(config):
-    """Renders a button in Streamlit."""
     return st.button(
         label=config.get("label", "Submit"),
     )
 
 def render_select(config):
-    """Renders a dropdown menu in Streamlit."""
     return st.selectbox(
         label=config.get("label", "Select an option"),
         options=config.get("options", []),
         index=config.get("default_index", 0),
     )
 
-# Mapping for field types to rendering functions
+# Map field types to render functions
 function_map = {
     "text_area": render_text_area,
     "file_uploader": render_file_uploader,
@@ -124,15 +121,35 @@ function_map = {
     "select": render_select,
 }
 
+# Evaluate conditions for prompt filtering
+def evaluate_conditions(user_input, condition):
+    """
+    Evaluates whether the 'user_input' meets the specified 'condition'.
+    Supports logical operators like $and, $or, $not, and comparison operators.
+    """
+    if isinstance(condition, bool):  # Handle simple boolean conditions
+        return condition
+
+    if "$and" in condition:
+        return all(evaluate_conditions(user_input, sub_condition) for sub_condition in condition["$and"])
+    elif "$or" in condition:
+        return any(evaluate_conditions(user_input, sub_condition) for sub_condition in condition["$or"])
+    elif "$not" in condition:
+        return not evaluate_conditions(user_input, condition["$not"])
+    else:
+        return False
+
+# Construct prompts based on conditions
 def prompt_conditionals(user_input, phase_name, phases):
     phase = phases.get(phase_name, {})
     additional_prompts = []
     for item in phase.get("user_prompt", []):
         condition_clause = item.get("condition", True)  # Default to True if condition is missing
-        if condition_clause:  # Evaluate or use default True
+        if evaluate_conditions(user_input, condition_clause):
             additional_prompts.append(item["prompt"])
-    return "\n".join(additional_prompts)
+    return "\n".join(additional_prompts)  # Combine prompts into a single string
 
+# Format user prompts
 def format_user_prompt(prompt, user_input):
     try:
         if isinstance(prompt, list):
@@ -140,9 +157,10 @@ def format_user_prompt(prompt, user_input):
         formatted_user_prompt = prompt.format(**user_input)
         return formatted_user_prompt
     except Exception as e:
-        print(f"Error occurred in format_user_prompt: {e}")
+        st.error(f"Error formatting user prompt: {e}")
         return prompt  # Fallback to raw prompt
 
 from core_logic.main import main
+
 if __name__ == "__main__":
     main(config=globals())
