@@ -127,7 +127,7 @@ def evaluate_conditions(user_input, condition):
     Evaluates whether the 'user_input' meets the specified 'condition'.
     Supports logical operators like $and, $or, $not, and comparison operators.
     """
-    if isinstance(condition, bool):  # Handle simple boolean conditions
+        if isinstance(condition, bool):  # Handle simple boolean conditions
         return condition
 
     if "$and" in condition:
@@ -137,7 +137,7 @@ def evaluate_conditions(user_input, condition):
     elif "$not" in condition:
         return not evaluate_conditions(user_input, condition["$not"])
     else:
-        return False
+        raise ValueError(f"Unknown condition format: {condition}")
 
 # Construct prompts based on conditions
 def prompt_conditionals(user_input, phase_name, phases):
@@ -157,7 +157,7 @@ def format_user_prompt(prompt, user_input):
         formatted_user_prompt = prompt.format(**user_input)
         return formatted_user_prompt
     except Exception as e:
-        st.error(f"Error formatting user prompt: {e}")
+        print(f"Error occurred in format_user_prompt: {e}")
         return prompt  # Fallback to raw prompt
 
 from core_logic.main import main
