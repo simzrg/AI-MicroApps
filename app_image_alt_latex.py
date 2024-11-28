@@ -123,11 +123,7 @@ function_map = {
 
 # Evaluate conditions for prompt filtering
 def evaluate_conditions(user_input, condition):
-    """
-    Evaluates whether the 'user_input' meets the specified 'condition'.
-    Supports logical operators like $and, $or, $not, and comparison operators.
-    """
-        if isinstance(condition, bool):  # Handle simple boolean conditions
+    if isinstance(condition, bool):  # Handle simple boolean conditions
         return condition
 
     if "$and" in condition:
