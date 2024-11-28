@@ -1,5 +1,13 @@
 import streamlit as st
 
+# Page configuration must come first
+st.set_page_config(
+    page_title="LaTeX Generator",
+    page_icon="🖼️",
+    layout="centered",
+    initial_sidebar_state="expanded",
+)
+
 APP_URL = ""  # TODO: Add URL for the app
 APP_IMAGE = ""  # TODO: Add default image for the app
 PUBLISHED = False  # Status of the app
@@ -145,10 +153,4 @@ def format_user_prompt(prompt, user_input):
 
 from core_logic.main import main
 if __name__ == "__main__":
-    st.set_page_config(
-        page_title=PAGE_CONFIG["page_title"],
-        page_icon=PAGE_CONFIG["page_icon"],
-        layout=PAGE_CONFIG["layout"],
-        initial_sidebar_state=PAGE_CONFIG["initial_sidebar_state"],
-    )
     main(config=globals())
