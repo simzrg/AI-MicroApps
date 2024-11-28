@@ -59,7 +59,7 @@ PHASES = {
 }
 
 ADVANCED_SETTINGS = {
-    "type": "accordion",
+    "type": "expander",  # Replacing 'accordion' with 'expander' for compatibility
     "label": "Advanced Settings",
     "content": {
         "system_prompt": {
@@ -106,6 +106,26 @@ PAGE_CONFIG = {
 
 SIDEBAR_HIDDEN = True
 
+# Ensure a clear mapping for supported field types in the backend
+function_map = {
+    "text_area": render_text_area,  # Replace with the actual render function for text area
+    "file_uploader": render_file_uploader,  # Replace with the actual render function for file uploader
+    "button": render_button,  # Replace with the actual render function for button
+    "select": render_select,  # Replace with the actual render function for dropdown/select
+    "expander": render_expander,  # Replace with the actual render function for expander
+}
+
+# Debugging function to catch unsupported field types
+def build_field(phase_name, fields, user_input, phases, system_prompt):
+    for field_name, field_config in fields.items():
+        field_type = field_config["type"]
+        try:
+            my_input_function = function_map[field_type]
+        except KeyError:
+            raise KeyError(f"Unsupported field_type: '{field_type}' in phase '{phase_name}'. Please check your configuration.")
+        my_input_function(field_name, field_config, user_input, phases, system_prompt)
+
+# Main app entry point
 from core_logic.main import main
 
 if __name__ == "__main__":
