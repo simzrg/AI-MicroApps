@@ -16,13 +16,16 @@ def is_valid_url(url):
 # Function to Call OpenAI API
 def call_openai_api(prompt):
     try:
-        response = openai.Completion.create(
-            engine="text-davinci-003",  # Use the desired model
-            prompt=prompt,
+        response = openai.ChatCompletion.create(
+            model="gpt-4",  # Replace with "gpt-3.5-turbo" if needed
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant for generating LaTeX, alt text, and visual transcripts."},
+                {"role": "user", "content": prompt},
+            ],
             max_tokens=1000,
             temperature=0.7,
         )
-        return response["choices"][0]["text"].strip()
+        return response["choices"][0]["message"]["content"].strip()
     except Exception as e:
         return f"Error: {e}"
 
@@ -129,4 +132,3 @@ if st.button("Submit"):
             st.write("### Uploaded Images:")
             for uploaded_file in uploaded_files:
                 st.image(uploaded_file, caption=uploaded_file.name)
-
