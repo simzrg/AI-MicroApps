@@ -66,22 +66,10 @@ SIDEBAR_HIDDEN = True
 
 # Import necessary libraries
 import streamlit as st
+import openai  # Replace with your actual API library
 
-# Placeholder for LLM Functionality
-def call_llm(prompt, model):
-    """
-    Simulate a call to the LLM (e.g., gpt-4o).
-    Replace this with the real API call or backend logic.
-    """
-    # Simulated response logic
-    response = {
-        "input_prompt": prompt,
-        "results": [
-            "Description 1: This is a simulated response for image 1.",
-            "Description 2: This is a simulated response for image 2.",
-        ],
-    }
-    return response
+# Set up OpenAI API key
+openai.api_key = "your_openai_api_key_here"  # Replace with your OpenAI API key
 
 # Helper Function: Build Prompt Dynamically
 def build_prompt(system_prompt, urls, files, options):
@@ -114,6 +102,22 @@ def build_prompt(system_prompt, urls, files, options):
         )
     
     return prompt.strip()
+
+# Helper Function: Call OpenAI API
+def call_openai(prompt):
+    """
+    Make a request to the OpenAI API and return the response.
+    """
+    try:
+        response = openai.Completion.create(
+            model="gpt-4o",  # Replace with your desired model
+            prompt=prompt,
+            max_tokens=500,
+            temperature=0.7,
+        )
+        return response.choices[0].text.strip()
+    except Exception as e:
+        return f"Error: {e}"
 
 # Main Application Function
 def main(config):
@@ -166,13 +170,15 @@ def main(config):
             st.write("### Finalized Prompt")
             st.code(prompt)
 
-            # Simulate LLM Call (Replace with real API call to gpt-4o)
-            response = call_llm(prompt, model=config["PREFERRED_LLM"])
+            # Make API call to OpenAI
+            response = call_openai(prompt)
 
-            # Display AI Results
-            st.write("### Results")
-            for result in response["results"]:
-                st.text(result)
+            # Display Results
+            if "Error" in response:
+                st.error(response)
+            else:
+                st.write("### Results")
+                st.text(response)
 
             # Optionally Display Uploaded Files
             if uploaded_files:
