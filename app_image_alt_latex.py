@@ -40,7 +40,7 @@ PHASES = {
         "user_prompt": [
             {
                 "prompt": """I am sending you one or more app_images. Please provide separate LaTeX code for each image I send. The LaTeX code should:
-                - convert the images into properly formatted LaTeX code."""
+                - Convert the images into properly formatted LaTeX code."""
             }
         ],
         "show_prompt": True,
@@ -66,42 +66,16 @@ PAGE_CONFIG = {
 
 SIDEBAR_HIDDEN = True
 
-# Import dependencies
-import openai
+# Import necessary libraries
 import streamlit as st
-import requests
 
-# OpenAI API Key (replace with your own key)
-openai.api_key = "your_openai_api_key_here"
-
-# Helper Function: Generate Dynamic Prompt
-def generate_prompt(base_prompt, urls, files, generate_latex, generate_alt_text, generate_transcript):
-    prompt = base_prompt + "\n\n"
-    if urls:
-        prompt += f"I have provided the following image URLs: {', '.join(urls)}.\n"
-    if files:
-        prompt += f"I have uploaded the following image files: {', '.join(files)}.\n"
-    prompt += "Please perform the following actions:\n"
-    if generate_latex:
-        prompt += "- Generate properly formatted LaTeX code from the images.\n"
-    if generate_alt_text:
-        prompt += "- Create descriptive alt text for the images.\n"
-    if generate_transcript:
-        prompt += "- Generate a visual transcript for the images.\n"
-    return prompt.strip()
-
-# Helper Function: Call OpenAI API
-def call_openai(prompt):
-    try:
-        response = openai.Completion.create(
-            model=PREFERRED_LLM,
-            prompt=prompt,
-            max_tokens=1000,
-            temperature=0.7,
-        )
-        return response.choices[0].text.strip()
-    except Exception as e:
-        return f"Error: {e}"
+# Placeholder for LLM Functionality
+def call_llm(prompt, model):
+    """
+    Simulate a call to the LLM (e.g., gpt-4o).
+    Replace this with the real API call or backend logic.
+    """
+    return f"Simulated response for the prompt:\n\n{prompt}"
 
 # Main Application Function
 def main(config):
@@ -117,10 +91,11 @@ def main(config):
         st.title("Advanced Settings")
         system_prompt = st.text_area("Edit System Prompt", value=config["SYSTEM_PROMPT"], height=150)
 
-    # Input Phase
+    # Phase 1: Image Input
     st.subheader(config["PHASES"]["phase1"]["name"])
     st.write(config["PHASES"]["phase1"]["phase_instructions"])
 
+    # Collect URLs and uploaded files
     urls = st.text_area(config["PHASES"]["phase1"]["fields"]["http_img_urls"]["label"]).splitlines()
     uploaded_files = st.file_uploader(
         config["PHASES"]["phase1"]["fields"]["uploaded_files"]["label"],
@@ -139,24 +114,37 @@ def main(config):
         if not urls and not uploaded_files:
             st.error("Please provide at least one URL or upload an image.")
         else:
+            # Prepare inputs for prompt
             urls = [url.strip() for url in urls if url.strip()]
             file_names = [file.name for file in uploaded_files]
 
-            # Generate Prompt
-            prompt = generate_prompt(system_prompt, urls, file_names, generate_latex, generate_alt_text, generate_transcript)
+            # Build dynamic prompt
+            prompt = system_prompt + "\n\n"
+            if urls:
+                prompt += f"Image URLs provided: {', '.join(urls)}\n"
+            if file_names:
+                prompt += f"Uploaded file names: {', '.join(file_names)}\n"
+            if generate_latex:
+                prompt += "- Generate LaTeX code.\n"
+            if generate_alt_text:
+                prompt += "- Create alt text.\n"
+            if generate_transcript:
+                prompt += "- Generate visual transcripts.\n"
 
-            # Display Prompt
-            st.write("### Finalized Prompt Sent to OpenAI:")
+            # Display Finalized Prompt
+            st.write("### Finalized Prompt")
             st.code(prompt)
 
-            # Call OpenAI API
-            st.write("### Results:")
-            result = call_openai(prompt)
+            # Simulate LLM Call (Replace with real API call to gpt-4o)
+            result = call_llm(prompt, model=config["PREFERRED_LLM"])
+
+            # Display Results
+            st.write("### Results")
             st.text(result)
 
-            # Display Uploaded Files
+            # Optionally Display Uploaded Files
             if uploaded_files:
-                st.write("### Uploaded Images:")
+                st.write("### Uploaded Images")
                 for uploaded_file in uploaded_files:
                     st.image(uploaded_file, caption=uploaded_file.name)
 
