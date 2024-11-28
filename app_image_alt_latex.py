@@ -7,7 +7,7 @@ APP_INTRO = "This app accepts images via upload or URL and returns LaTeX code."
 
 APP_HOW_IT_WORKS = """
 This app creates LaTeX code from images. 
-For most images, it provides properly formatted LaTeX code.
+For most images, it provides properly formatted LaTeX code, along with options for alt text and visual transcripts.
 """
 
 SHARED_ASSET = {}
@@ -22,69 +22,45 @@ PHASES = {
         "fields": {
             "http_img_urls": {
                 "type": "text_area",
-                "label": "Enter image URLs",
+                "label": "Enter image URLs"
             },
             "uploaded_files": {
                 "type": "file_uploader",
-                "label": "Choose files",
+                "label": "Upload images",
                 "allowed_files": ['png', 'jpeg', 'gif', 'webp'],
                 "multiple_files": True,
             },
-            "latex_input": {
-                "type": "text_area",
-                "label": "Enter custom LaTeX (optional)",
+            "latex_choice": {
+                "type": "checkbox",
+                "label": "Generate LaTeX",
+                "default": True
             },
-            "alt_text": {
-                "type": "text_area",
-                "label": "Enter alt text for the image (optional)",
+            "alt_text_choice": {
+                "type": "checkbox",
+                "label": "Generate Alt Text",
+                "default": True
             },
-            "visual_transcript": {
-                "type": "select",
-                "label": "Include visual transcript?",
-                "options": ["Yes", "No"],
+            "visual_transcript_choice": {
+                "type": "checkbox",
+                "label": "Generate Visual Transcript",
+                "default": False
+            },
+            "advanced_settings": {
+                "type": "text_area",
+                "label": "Edit System Prompt (Optional)",
+                "default": SYSTEM_PROMPT,
+                "hidden": False
             },
         },
-        "phase_instructions": "Provide image URLs or upload files, and optionally add custom LaTeX, alt text, or select visual transcript options.",
+        "phase_instructions": "Provide the images through URL or upload and configure your options below.",
         "user_prompt": [
             {
-                "prompt": """I am sending you one or more images. Please provide separate LaTeX code for each image I send. The LaTeX code should:
-                - Convert the images into properly formatted LaTeX code.
-                - Include any custom LaTeX provided by the user.
-                - Attach alt text and/or visual transcripts if specified."""
+                "prompt": """I am sending you one or more app_images. Please provide separate LaTeX code, alt text, and/or visual transcript for each image I send based on the selected options. The LaTeX code should:
+                - Convert the images into properly formatted LaTeX code."""
             }
         ],
         "show_prompt": True,
         "allow_skip": False,
-    }
-}
-
-ADVANCED_SETTINGS = {
-    "type": "expander",  # Replacing 'accordion' with 'expander' for compatibility
-    "label": "Advanced Settings",
-    "content": {
-        "system_prompt": {
-            "type": "text_area",
-            "label": "View/Edit System Prompt",
-            "default": SYSTEM_PROMPT,
-        }
-    }
-}
-
-BUTTONS = {
-    "submit": {
-        "type": "button",
-        "label": "Submit",
-        "action": "submit_form",
-    },
-    "restart": {
-        "type": "button",
-        "label": "Restart",
-        "action": "restart_app",
-    },
-    "exit": {
-        "type": "button",
-        "label": "Exit",
-        "action": "exit_app",
     }
 }
 
@@ -94,39 +70,18 @@ LLM_CONFIG_OVERRIDE = {}
 SCORING_DEBUG_MODE = True
 DISPLAY_COST = True
 
-COMPLETION_MESSAGE = "Thanks for using the LaTeX Generator service"
+COMPLETION_MESSAGE = "Thank you for using the LaTeX Generator service!"
 COMPLETION_CELEBRATION = False
 
 PAGE_CONFIG = {
     "page_title": "LaTeX Generator",
     "page_icon": "🖼️",
     "layout": "centered",
-    "initial_sidebar_state": "expanded",
+    "initial_sidebar_state": "expanded"
 }
 
 SIDEBAR_HIDDEN = True
 
-# Ensure a clear mapping for supported field types in the backend
-function_map = {
-    "text_area": render_text_area,  # Replace with the actual render function for text area
-    "file_uploader": render_file_uploader,  # Replace with the actual render function for file uploader
-    "button": render_button,  # Replace with the actual render function for button
-    "select": render_select,  # Replace with the actual render function for dropdown/select
-    "expander": render_expander,  # Replace with the actual render function for expander
-}
-
-# Debugging function to catch unsupported field types
-def build_field(phase_name, fields, user_input, phases, system_prompt):
-    for field_name, field_config in fields.items():
-        field_type = field_config["type"]
-        try:
-            my_input_function = function_map[field_type]
-        except KeyError:
-            raise KeyError(f"Unsupported field_type: '{field_type}' in phase '{phase_name}'. Please check your configuration.")
-        my_input_function(field_name, field_config, user_input, phases, system_prompt)
-
-# Main app entry point
 from core_logic.main import main
-
 if __name__ == "__main__":
     main(config=globals())
