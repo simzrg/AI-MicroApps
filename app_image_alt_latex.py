@@ -1,6 +1,6 @@
-APP_URL = "https://alt-text.streamlit.app"
-APP_IMAGE = "alt_text_flat.webp"
-PUBLISHED = True
+APP_URL = "https://construct-ial.streamlit.app/"
+APP_IMAGE = ""
+PUBLISHED = False
 
 APP_TITLE = "Alt Text Generator"
 APP_INTRO = """This app accepts images via upload or URL and returns alt text for accessibility."""
@@ -75,8 +75,8 @@ SIDEBAR_HIDDEN = True
 import streamlit as st
 import openai
 
-# OpenAI API Key (replace with your key)
-openai.api_key = "your_openai_api_key_here"
+# Set OpenAI API key
+openai.api_key = "your_openai_api_key_here"  # Replace with your OpenAI API key
 
 # Helper function to build the prompt
 def build_prompt(system_prompt, urls, files, important_text, complex_image):
@@ -109,13 +109,16 @@ def build_prompt(system_prompt, urls, files, important_text, complex_image):
 def call_openai(prompt):
     """Sends the prompt to OpenAI and returns the response."""
     try:
-        response = openai.Completion.create(
-            model=PREFERRED_LLM,
-            prompt=prompt,
+        response = openai.ChatCompletion.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": prompt},
+            ],
             max_tokens=1000,
             temperature=0.7,
         )
-        return response.choices[0].text.strip()
+        return response["choices"][0]["message"]["content"].strip()
     except Exception as e:
         return f"Error: {e}"
 
