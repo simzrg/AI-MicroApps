@@ -73,10 +73,6 @@ SIDEBAR_HIDDEN = True
 
 # Import necessary libraries
 import streamlit as st
-import openai
-
-# Set OpenAI API key
-openai.api_key = "your_openai_api_key_here"  # Replace with your OpenAI API key
 
 # Helper function to build the prompt
 def build_prompt(system_prompt, urls, files, important_text, complex_image):
@@ -103,24 +99,6 @@ def build_prompt(system_prompt, urls, files, important_text, complex_image):
         prompt += "Transcribe text verbatim to provide a detailed and informative description of the image.\n"
 
     return prompt.strip()
-
-
-# Function to call OpenAI API
-def call_openai(prompt):
-    """Sends the prompt to OpenAI and returns the response."""
-    try:
-        response = openai.ChatCompletion.create(
-            model="gpt-4",
-            messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": prompt},
-            ],
-            max_tokens=1000,
-            temperature=0.7,
-        )
-        return response["choices"][0]["message"]["content"].strip()
-    except Exception as e:
-        return f"Error: {e}"
 
 
 # Main application logic
@@ -162,35 +140,6 @@ def main(config):
         value=config["PHASES"]["phase1"]["fields"]["complex_image"]["value"],
         help=config["PHASES"]["phase1"]["fields"]["complex_image"]["help"],
     )
-
-    # Submit button
-    if st.button("Generate Alt Text"):
-        if not urls and not uploaded_files:
-            st.error("Please provide at least one URL or upload an image.")
-        else:
-            # Process inputs
-            urls = [url.strip() for url in urls if url.strip()]
-            file_names = [file.name for file in uploaded_files]
-
-            # Build the prompt
-            prompt = build_prompt(system_prompt, urls, file_names, important_text, complex_image)
-
-            # Display the finalized prompt
-            st.write("### Finalized Prompt")
-            st.code(prompt)
-
-            # Call OpenAI API
-            response = call_openai(prompt)
-
-            # Display the result
-            st.write("### Generated Alt Text")
-            st.text(response)
-
-            # Show uploaded files if any
-            if uploaded_files:
-                st.write("### Uploaded Images")
-                for uploaded_file in uploaded_files:
-                    st.image(uploaded_file, caption=uploaded_file.name)
 
 
 # Run the app
