@@ -1,8 +1,12 @@
-import streamlit as st
 import openai
+import streamlit as st
 import requests
 
-# Constants for App Configuration
+# App Configuration Constants
+APP_URL = ""  # TODO: Add URL for the app
+APP_IMAGE = ""  # TODO: Add default image for the app
+PUBLISHED = False  # Status of the app
+
 APP_TITLE = "LaTeX Generator"
 APP_INTRO = "This app accepts images via upload or URL and returns LaTeX code."
 APP_HOW_IT_WORKS = """
@@ -16,8 +20,8 @@ DEFAULT_PROMPT = (
     "Output: Provide the final LaTeX code in a format that can be easily copied or exported."
 )
 
-# OpenAI API Key (replace with your key)
-openai.api_key = "your_openai_api_key_here"
+# OpenAI API Key
+openai.api_key = "your_openai_api_key_here"  # Replace with your actual OpenAI API key
 
 # Helper Function: Validate URLs
 def is_valid_url(url):
@@ -27,23 +31,23 @@ def is_valid_url(url):
     except requests.RequestException:
         return False
 
-# Helper Function: Generate Dynamic Prompt
-def generate_system_prompt(base_prompt, urls, files, latex, alt_text, transcript):
+# Helper Function: Generate System Prompt
+def generate_system_prompt(base_prompt, urls, files, generate_latex, generate_alt_text, generate_transcript):
     prompt = base_prompt + "\n\n"
     if urls:
         prompt += f"I have provided the following image URLs: {', '.join(urls)}.\n"
     if files:
         prompt += f"I have uploaded the following image files: {', '.join(files)}.\n"
-    prompt += "Please perform the following actions:\n"
-    if latex:
+    prompt += "Please perform the following actions based on my selections:\n"
+    if generate_latex:
         prompt += "- Generate properly formatted LaTeX code from the images.\n"
-    if alt_text:
+    if generate_alt_text:
         prompt += "- Create descriptive alt text for the images.\n"
-    if transcript:
+    if generate_transcript:
         prompt += "- Generate a visual transcript for the images.\n"
     return prompt.strip()
 
-# Helper Function: Call OpenAI API with GPT-4
+# Helper Function: Call OpenAI API
 def call_openai_api(prompt):
     try:
         response = openai.ChatCompletion.create(
@@ -77,7 +81,7 @@ with st.sidebar:
     st.title("Advanced Settings")
     system_prompt = st.text_area("Edit System Prompt", value=DEFAULT_PROMPT, height=150)
 
-# Image Input Section
+# Input Section
 st.subheader("Input Images")
 image_urls = st.text_area("Enter Image URLs (one per line)")
 uploaded_files = st.file_uploader(
@@ -102,7 +106,7 @@ if st.button("Submit"):
     if not urls and not uploaded_files:
         st.error("Please provide at least one image URL or upload an image.")
     else:
-        # Generate Dynamic Prompt
+        # Generate Prompt
         finalized_prompt = generate_system_prompt(
             system_prompt,
             urls,
@@ -116,12 +120,12 @@ if st.button("Submit"):
         st.write("### Finalized Prompt Sent to OpenAI:")
         st.code(finalized_prompt)
 
-        # Call OpenAI GPT-4 API
+        # Call OpenAI API
         st.write("### Results:")
-        result = call_openai_api(finalized_prompt)
-        st.text(result)
+        response = call_openai_api(finalized_prompt)
+        st.text(response)
 
-        # Optionally Display Uploaded Files
+        # Display Uploaded Files
         if uploaded_files:
             st.write("### Uploaded Images:")
             for uploaded_file in uploaded_files:
