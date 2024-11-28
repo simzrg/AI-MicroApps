@@ -123,38 +123,52 @@ function_map = {
 
 # Evaluate conditions for prompt filtering
 def evaluate_conditions(user_input, condition):
+    """
+    Evaluates whether the 'user_input' meets the specified 'condition'.
+    Supports logical operators like $and, $or, $not, and comparison operators.
+    """
     if isinstance(condition, bool):  # Handle simple boolean conditions
         return condition
 
-    if "$and" in condition:
-        return all(evaluate_conditions(user_input, sub_condition) for sub_condition in condition["$and"])
-    elif "$or" in condition:
-        return any(evaluate_conditions(user_input, sub_condition) for sub_condition in condition["$or"])
-    elif "$not" in condition:
-        return not evaluate_conditions(user_input, condition["$not"])
-    else:
-        raise ValueError(f"Unknown condition format: {condition}")
+    if isinstance(condition, dict):  # Handle logical operators
+        if "$and" in condition:
+            return all(evaluate_conditions(user_input, sub_condition) for sub_condition in condition["$and"])
+        elif "$or" in condition:
+            return any(evaluate_conditions(user_input, sub_condition) for sub_condition in condition["$or"])
+        elif "$not" in condition:
+            return not evaluate_conditions(user_input, condition["$not"])
 
-# Construct prompts based on conditions
+    # If condition is not recognized, raise an error
+    raise ValueError(f"Unknown condition type: {condition}")
+
 def prompt_conditionals(user_input, phase_name, phases):
+    """
+    Returns prompts based on the conditions defined in the phase configuration.
+    """
     phase = phases.get(phase_name, {})
     additional_prompts = []
+
     for item in phase.get("user_prompt", []):
         condition_clause = item.get("condition", True)  # Default to True if condition is missing
         if evaluate_conditions(user_input, condition_clause):
             additional_prompts.append(item["prompt"])
-    return "\n".join(additional_prompts)  # Combine prompts into a single string
 
-# Format user prompts
+    # Join all prompts into a single string
+    return "\n".join(additional_prompts)
+
 def format_user_prompt(prompt, user_input):
+    """
+    Formats the prompt with user input. Handles list-to-string conversion.
+    """
     try:
-        if isinstance(prompt, list):
-            prompt = "\n".join(prompt)  # Convert list to string
+        if isinstance(prompt, list):  # Convert list to a single string
+            prompt = "\n".join(prompt)
+
         formatted_user_prompt = prompt.format(**user_input)
         return formatted_user_prompt
     except Exception as e:
-        print(f"Error occurred in format_user_prompt: {e}")
-        return prompt  # Fallback to raw prompt
+        st.error(f"Error occurred in format_user_prompt: {e}")
+        return prompt  # Return the raw prompt as a fallback
 
 from core_logic.main import main
 
