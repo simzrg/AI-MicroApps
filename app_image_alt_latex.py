@@ -1,6 +1,6 @@
-APP_URL = "https://construct-ial.streamlit.app/"
-APP_IMAGE = ""
-PUBLISHED = False
+APP_URL = "https://alt-text.streamlit.app"
+APP_IMAGE = "alt_text_flat.webp"
+PUBLISHED = True
 
 APP_TITLE = "Alt Text Generator"
 APP_INTRO = """This app accepts images via upload or URL and returns alt text for accessibility."""
