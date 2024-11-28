@@ -36,10 +36,14 @@ http_img_urls = st.text_area(
     placeholder="https://example.com/image1.png\nhttps://example.com/image2.png"
 )
 
-# Process LaTeX Generation
-if st.button("Generate LaTeX Code"):
-    if not uploaded_files and not http_img_urls.strip():
-        st.error("Please upload files or enter image URLs.")
+PREFERRED_LLM = "gpt-4o-mini"
+LLM_CONFIG_OVERRIDE = {
+    "max_tokens": 8000,
+    "temperature": 1.0
+}
+
+SCORING_DEBUG_MODE = True
+DISPLAY_COST = True
 
 # Footer
 st.info("Thanks for using the LaTeX Generator service!")
