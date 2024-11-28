@@ -1,5 +1,5 @@
-APP_URL = "" # TODO: Add URL for the app
-APP_IMAGE = "" # TODO: Add default image for the app
+APP_URL = "" #TODO: Add URL for the app
+APP_IMAGE = "" #TODO: Add default image for the app
 PUBLISHED = False # Status of the app
 
 APP_TITLE = "LaTex Generator"
@@ -35,11 +35,10 @@ PHASES = {
             },
         },
        "phase_instructions": "Generate LaTeX for the image urls and uploads",
-
         "user_prompt": [
             {
                 "prompt": """I am sending you one or more app_images. Please provide separate LaTeX code for each image I send. The LaTeX code should:
-                - convert the images into properly formatted LaTeX code"""
+                - convert the images into properly formatted LaTeX code exactly as it appears (verbatim)"""
             }
         ],
         "show_prompt": True,
