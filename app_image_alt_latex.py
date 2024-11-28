@@ -37,6 +37,7 @@ PHASES = {
        "phase_instructions": "Generate LaTeX for the image urls and uploads",
         "user_prompt": [
             {
+                "condition": {},
                 "prompt": """I am sending you one or more app_images. Please provide separate LaTeX code for each image I send. The LaTeX code should:
                 - convert the images into properly formatted LaTeX code exactly as it appears (verbatim)"""
             }
