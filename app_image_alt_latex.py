@@ -73,7 +73,15 @@ def call_llm(prompt, model):
     Simulate a call to the LLM (e.g., gpt-4o).
     Replace this with the real API call or backend logic.
     """
-    return f"Simulated response for the prompt:\n\n{prompt}"
+    # Simulated response logic
+    response = {
+        "input_prompt": prompt,
+        "results": [
+            "Description 1: This is a simulated response for image 1.",
+            "Description 2: This is a simulated response for image 2.",
+        ],
+    }
+    return response
 
 # Helper Function: Build Prompt Dynamically
 def build_prompt(system_prompt, urls, files, options):
@@ -159,11 +167,12 @@ def main(config):
             st.code(prompt)
 
             # Simulate LLM Call (Replace with real API call to gpt-4o)
-            result = call_llm(prompt, model=config["PREFERRED_LLM"])
+            response = call_llm(prompt, model=config["PREFERRED_LLM"])
 
-            # Display Results
+            # Display AI Results
             st.write("### Results")
-            st.text(result)
+            for result in response["results"]:
+                st.text(result)
 
             # Optionally Display Uploaded Files
             if uploaded_files:
