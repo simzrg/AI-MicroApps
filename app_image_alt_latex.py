@@ -2,11 +2,7 @@ import streamlit as st
 import openai
 import requests
 
-# App Constants
-APP_URL = ""  # TODO: Add URL for the app
-APP_IMAGE = ""  # TODO: Add default image for the app
-PUBLISHED = False  # Status of the app
-
+# Constants for App Configuration
 APP_TITLE = "LaTeX Generator"
 APP_INTRO = "This app accepts images via upload or URL and returns LaTeX code."
 APP_HOW_IT_WORKS = """
@@ -31,7 +27,7 @@ def is_valid_url(url):
     except requests.RequestException:
         return False
 
-# Helper Function: Generate Dynamic System Prompt
+# Helper Function: Generate Dynamic Prompt
 def generate_system_prompt(base_prompt, urls, files, latex, alt_text, transcript):
     prompt = base_prompt + "\n\n"
     if urls:
@@ -47,13 +43,13 @@ def generate_system_prompt(base_prompt, urls, files, latex, alt_text, transcript
         prompt += "- Generate a visual transcript for the images.\n"
     return prompt.strip()
 
-# Helper Function: Call OpenAI API
+# Helper Function: Call OpenAI API with GPT-4
 def call_openai_api(prompt):
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-4",  # Replace with gpt-3.5-turbo if needed
+            model="gpt-4",
             messages=[
-                {"role": "system", "content": DEFAULT_PROMPT},
+                {"role": "system", "content": "You are a helpful assistant."},
                 {"role": "user", "content": prompt},
             ],
             max_tokens=1000,
@@ -65,7 +61,7 @@ def call_openai_api(prompt):
 
 # Streamlit Page Configuration
 st.set_page_config(
-    page_title="LaTeX Generator",
+    page_title=APP_TITLE,
     page_icon="🖼️",
     layout="centered",
     initial_sidebar_state="expanded",
@@ -120,7 +116,7 @@ if st.button("Submit"):
         st.write("### Finalized Prompt Sent to OpenAI:")
         st.code(finalized_prompt)
 
-        # Call OpenAI API
+        # Call OpenAI GPT-4 API
         st.write("### Results:")
         result = call_openai_api(finalized_prompt)
         st.text(result)
